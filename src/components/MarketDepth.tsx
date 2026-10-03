@@ -65,7 +65,7 @@ export function MarketDepth({ theme = 'dark' }: MarketDepthProps) {
   const isDark = theme === 'dark';
 
   return (
-    <div className="rounded-xl p-5 bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-800/80 dark:border-slate-800/80 light:border-slate-200 flex flex-col justify-between">
+    <div className="rounded-xl p-4 md:p-5 bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-800/80 dark:border-slate-800/80 light:border-slate-200 flex flex-col justify-between">
       {/* Header */}
       <div>
         <div className="flex items-center justify-between mb-2">
@@ -114,27 +114,27 @@ export function MarketDepth({ theme = 'dark' }: MarketDepthProps) {
       </div>
 
       {/* Mirrored Horizontal BarChart */}
-      <div className="w-full h-64">
+      <div className="w-full h-[250px] md:h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             layout="vertical"
             data={data}
             stackOffset="sign"
-            margin={{ top: 5, right: 20, left: 15, bottom: 5 }}
+            margin={{ top: 5, right: 15, left: 5, bottom: 5 }}
           >
             <XAxis
               type="number"
               domain={[-1800, 1800]}
               tickFormatter={(val: number) => `${Math.abs(val)}`}
               stroke={isDark ? '#475569' : '#94A3B8'}
-              tick={{ fontSize: 10, fontFamily: 'monospace' }}
+              tick={{ fontSize: 9, fontFamily: 'monospace' }}
             />
             <YAxis
               type="category"
               dataKey="priceFormatted"
               stroke={isDark ? '#64748B' : '#64748B'}
-              tick={{ fontSize: 10, fontFamily: 'monospace', fill: isDark ? '#94A3B8' : '#334155' }}
-              width={65}
+              tick={{ fontSize: 9, fontFamily: 'monospace', fill: isDark ? '#94A3B8' : '#334155' }}
+              width={55}
             />
             <ReferenceLine x={0} stroke={isDark ? '#334155' : '#CBD5E1'} strokeWidth={1.5} />
             <Tooltip

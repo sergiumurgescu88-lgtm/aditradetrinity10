@@ -32,24 +32,24 @@ const LogLine = memo(({ log }: { log: SystemLogEntry }) => {
   };
 
   return (
-    <div className="flex items-start gap-2 py-1 px-2.5 rounded font-mono text-xs hover:bg-slate-900/60 dark:hover:bg-slate-900/60 light:hover:bg-slate-100/60 transition-colors">
-      <span className="text-slate-500 dark:text-slate-500 light:text-slate-400 shrink-0 select-none">
+    <div className="flex items-start gap-1.5 sm:gap-2 py-0.5 sm:py-1 px-1.5 sm:px-2.5 rounded font-mono text-[10px] sm:text-xs hover:bg-slate-900/60 dark:hover:bg-slate-900/60 light:hover:bg-slate-100/60 transition-colors">
+      <span className="text-slate-500 dark:text-slate-500 light:text-slate-400 shrink-0 select-none text-[9px] sm:text-[11px]">
         {timeFormatted}
       </span>
 
       <span
-        className={`inline-block px-1.5 py-0.2 rounded text-[10px] font-bold border shrink-0 uppercase tracking-wider ${getLevelStyle(
+        className={`inline-block px-1 sm:px-1.5 py-0.2 rounded text-[9px] sm:text-[10px] font-bold border shrink-0 uppercase tracking-wider ${getLevelStyle(
           log.level
         )}`}
       >
         {log.level}
       </span>
 
-      <span className="text-cyan-500/80 dark:text-cyan-400/80 light:text-cyan-700 shrink-0 font-semibold">
+      <span className="text-cyan-500/80 dark:text-cyan-400/80 light:text-cyan-700 shrink-0 font-semibold text-[9px] sm:text-[11px]">
         [{log.subsystem}]
       </span>
 
-      <span className="text-slate-300 dark:text-slate-300 light:text-slate-800 break-all leading-relaxed">
+      <span className="text-slate-300 dark:text-slate-300 light:text-slate-800 break-words leading-relaxed flex-1">
         {log.message}
       </span>
     </div>

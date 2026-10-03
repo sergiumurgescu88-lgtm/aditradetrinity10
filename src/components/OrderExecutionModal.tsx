@@ -229,30 +229,30 @@ export function OrderExecutionModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
       <motion.div
         initial={{ scale: 0.96, opacity: 0, y: 10 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0, y: 10 }}
         transition={{ duration: 0.2 }}
-        className="max-w-2xl w-full my-6 rounded-2xl bg-slate-900 border border-slate-700/80 shadow-2xl shadow-slate-950/60 text-slate-100 flex flex-col overflow-hidden max-h-[90vh]"
+        className="w-[95vw] sm:w-full sm:max-w-2xl my-auto rounded-2xl bg-slate-900 border border-slate-700/80 shadow-2xl shadow-slate-950/60 text-slate-100 flex flex-col overflow-hidden max-h-[90vh]"
       >
         {/* Modal Header */}
-        <div className="bg-slate-950/90 px-5 py-3.5 border-b border-slate-800 flex items-center justify-between gap-3">
+        <div className="bg-slate-950/90 px-4 sm:px-5 py-3 sm:py-3.5 border-b border-slate-800 flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
               <Zap className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-sm sm:text-base uppercase tracking-wider font-mono">
+                <h3 className="font-bold text-xs sm:text-base uppercase tracking-wider font-mono">
                   HERMES FAST ORDER ROUTER
                 </h3>
                 <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                   L3 DIRECT
                 </span>
               </div>
-              <p className="text-[11px] font-mono text-slate-400">
+              <p className="text-[10px] sm:text-[11px] font-mono text-slate-400">
                 Sub-millisecond execution with algorithmic position sizing
               </p>
             </div>
@@ -268,7 +268,7 @@ export function OrderExecutionModal({
         </div>
 
         {/* Modal Body / Scrollable Form */}
-        <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4 font-mono text-xs flex-1">
+        <form onSubmit={handleSubmit} className="p-3.5 sm:p-5 overflow-y-auto space-y-3.5 sm:space-y-4 font-mono text-xs flex-1">
           {/* Asset & Bot Selector */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -395,6 +395,7 @@ export function OrderExecutionModal({
               <input
                 type="number"
                 step="any"
+                inputMode="decimal"
                 value={customPrice}
                 onChange={(e) => setCustomPrice(e.target.value)}
                 className="w-full py-2 px-3 rounded-lg bg-slate-950/80 border border-slate-800 text-slate-100 focus:outline-none focus:border-cyan-500"
@@ -458,6 +459,7 @@ export function OrderExecutionModal({
                 <input
                   type="number"
                   step="any"
+                  inputMode="decimal"
                   value={stopLossPrice}
                   onChange={(e) => setStopLossPrice(e.target.value)}
                   className={`w-full py-1.5 px-2.5 rounded bg-slate-900 border text-slate-100 focus:outline-none ${
@@ -494,6 +496,7 @@ export function OrderExecutionModal({
                 <input
                   type="number"
                   step="any"
+                  inputMode="decimal"
                   value={takeProfitPrice}
                   onChange={(e) => setTakeProfitPrice(e.target.value)}
                   className="w-full py-1.5 px-2.5 rounded bg-slate-900 border border-slate-700 text-slate-100 focus:outline-none focus:border-cyan-500"

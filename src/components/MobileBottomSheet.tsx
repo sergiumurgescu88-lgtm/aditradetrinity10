@@ -67,17 +67,17 @@ export function MobileBottomSheet({
             className="relative z-10 w-full max-h-[85vh] bg-slate-900 border-t border-slate-700/80 rounded-t-3xl p-5 shadow-2xl text-slate-100 flex flex-col overflow-y-auto"
           >
             {/* Drag Handle Bar */}
-            <div className="w-12 h-1.5 bg-slate-700 hover:bg-slate-600 rounded-full mx-auto mb-4 cursor-grab shrink-0" />
+            <div className="w-12 h-1.5 bg-slate-700 hover:bg-slate-600 rounded-full mx-auto mb-3 cursor-grab shrink-0" />
 
-            {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            {/* Sticky Header with Close Button */}
+            <div className="sticky top-0 bg-slate-900/95 backdrop-blur-sm z-20 flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
               <div className="flex items-center gap-2">
                 <div className="p-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
                   <Activity className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold uppercase font-mono tracking-wider">
-                    HERMES MOBILE CONTROL DOCK
+                  <h3 className="text-xs sm:text-sm font-bold uppercase font-mono tracking-wider">
+                    HERMES CONTROL DOCK
                   </h3>
                   <span className="text-[10px] font-mono text-slate-400">
                     Latency: <strong className="text-cyan-400">{latencyMs}ms</strong> • Node: Frankfurt-09
@@ -95,7 +95,7 @@ export function MobileBottomSheet({
             </div>
 
             {/* Quick Action Matrix */}
-            <div className="py-4 space-y-3">
+            <div className="py-4 space-y-3 pb-8">
               <span className="text-[10px] font-mono uppercase text-slate-400 tracking-wider block">
                 Primary Actions
               </span>

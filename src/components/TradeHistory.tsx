@@ -168,7 +168,7 @@ export function TradeHistory({ trades, theme = 'dark' }: TradeHistoryProps) {
 
       {/* Table Container */}
       <div className="flex-1 overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
-        <table className="w-full text-left text-xs font-mono border-collapse">
+        <table className="w-full min-w-[650px] text-left text-xs font-mono border-collapse">
           <thead className="sticky top-0 z-10 bg-slate-950/90 dark:bg-slate-950/90 light:bg-slate-100/90 backdrop-blur-sm text-[10px] uppercase text-slate-400 border-b border-slate-800/80">
             <tr>
               <th className="py-2.5 px-3">Order ID</th>

@@ -78,11 +78,18 @@ export function VolatilityHeatmap({ theme = 'dark' }: VolatilityHeatmapProps) {
     d3.select(container).selectAll('*').remove();
 
     const isDark = theme === 'dark';
-    const margin = { top: 35, right: 25, bottom: 25, left: 135 };
-
     const containerWidth = container.clientWidth || 480;
-    const height = 230;
-    const width = Math.max(340, containerWidth);
+    const isMobile = containerWidth < 460;
+
+    const margin = {
+      top: 35,
+      right: isMobile ? 12 : 25,
+      bottom: 25,
+      left: isMobile ? 70 : 135,
+    };
+
+    const height = isMobile ? 250 : 320;
+    const width = Math.max(320, containerWidth);
 
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
@@ -148,14 +155,15 @@ export function VolatilityHeatmap({ theme = 'dark' }: VolatilityHeatmapProps) {
     yAxisGroup.select('.domain').remove();
     yAxisGroup
       .selectAll('text')
+      .text((d: any) => (isMobile ? String(d).split(' ')[0] : String(d)))
       .style('font-family', 'ui-monospace, monospace')
-      .style('font-size', '11px')
+      .style('font-size', isMobile ? '10px' : '11px')
       .style('font-weight', (d) => (d === 'Sergiu (Sovereign)' ? '700' : '500'))
       .style('fill', (d) => {
         if (d === 'Sergiu (Sovereign)') return isDark ? '#38BDF8' : '#0284C7';
         return isDark ? '#CBD5E1' : '#334155';
       })
-      .attr('dx', '-8px');
+      .attr('dx', '-6px');
 
     // Render Matrix Rectangles (5x4)
     const cells = g
@@ -213,7 +221,7 @@ export function VolatilityHeatmap({ theme = 'dark' }: VolatilityHeatmapProps) {
   }, [theme]);
 
   return (
-    <div className="rounded-xl p-5 bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-800/80 dark:border-slate-800/80 light:border-slate-200 flex flex-col justify-between">
+    <div className="rounded-xl p-4 md:p-5 bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-800/80 dark:border-slate-800/80 light:border-slate-200 flex flex-col justify-between">
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
