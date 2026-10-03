@@ -17,6 +17,7 @@ import type {
   HermesWsServerMessage,
   TrinityEngineType,
   OrderSide,
+  OrderType,
 } from '../types';
 
 interface UseHermesWebSocketOptions {
@@ -1064,6 +1065,63 @@ export function useHermesWebSocket(options: UseHermesWebSocketOptions = {}) {
     }));
   }, []);
 
+  // Execute manual order through the Hermes Engine with dynamic state propagation
+  const executeManualOrder = useCallback((params: {
+    pair: string;
+    side: OrderSide;
+    type: OrderType;
+    price: number;
+    amount: number;
+    stopLossPrice?: number;
+    takeProfitPrice?: number;
+    botId?: string;
+    executionVenue?: string;
+  }): TradeHistory => {
+    const targetBot = state.dashboard.bots.find((b) => b.id === params.botId) ?? state.dashboard.bots[0];
+    const totalValue = Number((params.amount * params.price).toFixed(2));
+    const fee = Number((totalValue * 0.0004).toFixed(2));
+    const latency = Math.floor(6 + Math.random() * 10);
+
+    const newTrade: TradeHistory = {
+      id: `ORD-${Date.now().toString().slice(-6)}`,
+      botId: targetBot?.id ?? 'manual-desk',
+      botName: targetBot?.name ?? 'DIRECT DESK',
+      engine: targetBot?.engine ?? 'SERGIU',
+      pair: params.pair,
+      side: params.side,
+      type: params.type,
+      amount: params.amount,
+      executionPrice: params.price,
+      stopPrice: params.stopLossPrice,
+      targetPrice: params.takeProfitPrice,
+      totalValueUsd: totalValue,
+      feeUsd: fee,
+      pnlUsd: 0,
+      pnlPercentage: 0,
+      status: 'FILLED',
+      timestamp: Date.now(),
+      latencyMs: latency,
+      executionVenue: params.executionVenue || 'Hermes Smart-Router L3',
+      txHash: `0x${Math.random().toString(16).slice(2, 8)}...${Math.random().toString(16).slice(2, 6)}`,
+    };
+
+    // Dispatch message to WS
+    sendMessage({
+      command: 'EXECUTE_ORDER',
+      timestamp: Date.now(),
+      payload: newTrade,
+    });
+
+    // Update real-time state
+    handleServerMessage({
+      action: 'TRADE_EXECUTED',
+      timestamp: Date.now(),
+      payload: newTrade,
+    });
+
+    return newTrade;
+  }, [state.dashboard.bots, sendMessage, handleServerMessage]);
+
   const manualReconnect = useCallback(() => {
     reconnectAttemptsRef.current = 0;
     connect();
@@ -1099,6 +1157,7 @@ export function useHermesWebSocket(options: UseHermesWebSocketOptions = {}) {
     pauseBot,
     restartBot,
     toggleAutoPause,
+    executeManualOrder,
     emergencyStop,
     setSelectedBotId,
     setFilterPair,

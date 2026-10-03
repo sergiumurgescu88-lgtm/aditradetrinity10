@@ -128,12 +128,20 @@ export function BotCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       whileHover={{ y: -3 }}
-      className={`relative group rounded-xl border backdrop-blur-md transition-all duration-200 overflow-hidden flex flex-col justify-between ${
+      className={`relative group rounded-xl border backdrop-blur-md transition-all duration-200 overflow-hidden flex flex-col justify-between snap-center shrink-0 w-[88vw] sm:w-[340px] md:w-auto ${
         bot.engine === 'SERGIU'
           ? 'bg-gradient-to-b from-slate-900/90 via-slate-900/95 to-slate-950/95 border-cyan-500/40 shadow-lg shadow-cyan-950/20'
           : 'bg-slate-900/70 dark:bg-slate-900/70 light:bg-white/80 border-slate-800/80 dark:border-slate-800/80 light:border-slate-200 hover:border-slate-700 dark:hover:border-slate-700 shadow-sm'
       }`}
     >
+      {/* Live Hermes Active Pulse Glow */}
+      {isActive && (
+        <motion.div
+          animate={{ opacity: [0.15, 0.35, 0.15] }}
+          transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut' }}
+          className="absolute inset-0 border border-cyan-500/30 rounded-xl pointer-events-none"
+        />
+      )}
       {/* Top subtle highlight bar */}
       <div
         className={`h-0.5 w-full ${
@@ -384,7 +392,9 @@ export function BotCard({
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 pt-2 border-t border-slate-800/60 dark:border-slate-800/60 light:border-slate-200">
-          <button
+          <motion.button
+            whileTap={{ scale: 0.94 }}
+            whileHover={{ scale: 1.01 }}
             type="button"
             disabled={isEmergency}
             onClick={() => onToggleStatus(bot.id)}
@@ -405,16 +415,18 @@ export function BotCard({
                 <span>Engage Bot</span>
               </>
             )}
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            whileTap={{ scale: 0.90, rotate: 180 }}
+            whileHover={{ scale: 1.08 }}
             type="button"
             title="Recalibrate Engine Parameters"
             onClick={() => onSelectBot?.(bot.id)}
             className="p-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-slate-300 border border-slate-700/60 hover:border-slate-600 transition-colors"
           >
             <RotateCw className="w-3.5 h-3.5" />
-          </button>
+          </motion.button>
         </div>
       </div>
     </motion.div>

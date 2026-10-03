@@ -37,7 +37,71 @@ import { MarketDepth } from './components/MarketDepth';
 import { SystemLogs } from './components/SystemLogs';
 import { TradeHistory } from './components/TradeHistory';
 import { NotificationToast } from './components/NotificationToast';
-import type { Bot, TrinityEngineType, SystemLogEntry, ToastNotification } from './types';
+import { OrderExecutionModal } from './components/OrderExecutionModal';
+import { HermesInsights } from './components/HermesInsights';
+import { MobileBottomNav } from './components/MobileBottomNav';
+import { MobileBottomSheet } from './components/MobileBottomSheet';
+import type {
+  Bot,
+  TrinityEngineType,
+  SystemLogEntry,
+  ToastNotification,
+  OrderSide,
+  OrderType,
+  HermesInsight,
+  MacroCorrelationMatrix,
+} from './types';
+
+const INITIAL_HERMES_INSIGHTS: HermesInsight[] = [
+  {
+    id: 'ins-1',
+    timestamp: Date.now() - 15000,
+    category: 'MACRO_CORRELATION',
+    title: 'DXY Surge ⇄ XAUUSD Bias Recalibrated',
+    thought:
+      'Hermes a detectat o creștere bruscă pe DXY (+0.38% spre 104.42). Având în vedere corelația inversă de -0.84 cu Aurul, am ajustat bias-ul pe XAUUSD spre DEFENSIVE și am strâns spread-urile pe Gamma.',
+    actionTaken: 'XAUUSD Bias set to DEFENSIVE (-18% Exposure)',
+    affectedAsset: 'XAUUSD',
+    affectedEngine: 'GAMMA',
+    confidence: 96,
+    impact: 'DEFENSIVE',
+  },
+  {
+    id: 'ins-2',
+    timestamp: Date.now() - 8000,
+    category: 'TECHNICAL_DIVERGENCE',
+    title: 'H4 RSI Bearish Divergence on BTC',
+    thought:
+      'Hermes a detectat o divergență RSI pe H4 și a redus expunerea lui Alpha cu 20% pentru a preveni riscul de retragere bruscă la suportul $93,400.',
+    actionTaken: 'Alpha Exposure Throttled -20%',
+    affectedAsset: 'BTC/USDT',
+    affectedEngine: 'ALPHA',
+    confidence: 92,
+    impact: 'DEFENSIVE',
+  },
+  {
+    id: 'ins-3',
+    timestamp: Date.now() - 2000,
+    category: 'LIQUIDITY_SHOCK',
+    title: 'Cross-Exchange Funding Rate Asymmetry',
+    thought:
+      'Hermes a identificat o discrepanță de 14 bps între Deribit și Binance pe ETH. Motorul Beta a inițiat un rebalance delta-neutral pentru a captura yield-ul.',
+    actionTaken: 'Beta Delta-Neutral Rebalance Engaged',
+    affectedAsset: 'ETH/USDT',
+    affectedEngine: 'BETA',
+    confidence: 94,
+    impact: 'POSITIVE',
+  },
+];
+
+const INITIAL_MACRO_CORRELATION: MacroCorrelationMatrix = {
+  dxy: { value: 104.42, change24h: 0.38, trend: 'SURGING' },
+  us10y: { value: 4.38, change24h: 1.2 },
+  spx: { value: 5740.20, change24h: 0.45 },
+  btcGoldCorr: 0.48,
+  dxyGoldCorr: -0.84,
+  dxyBtcCorr: -0.62,
+};
 
 const INITIAL_SYSTEM_LOGS: SystemLogEntry[] = [
   {
@@ -128,6 +192,7 @@ export default function App() {
     startBot,
     pauseBot,
     toggleAutoPause,
+    executeManualOrder,
     emergencyStop,
     reconnect,
   } = useHermesWebSocket();
@@ -137,6 +202,44 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [killSwitchModalOpen, setKillSwitchModalOpen] = useState(false);
   const [activeBotModal, setActiveBotModal] = useState<Bot | null>(null);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState<boolean>(false);
+  const [isMobileDockOpen, setIsMobileDockOpen] = useState<boolean>(false);
+
+  // Fast Order Execution Handler connecting to Hermes WebSocket & Telemetry
+  const handleExecuteOrder = (order: {
+    pair: string;
+    side: OrderSide;
+    type: OrderType;
+    price: number;
+    amount: number;
+    stopLossPrice?: number;
+    takeProfitPrice?: number;
+    botId?: string;
+    executionVenue?: string;
+  }) => {
+    const executedTrade = executeManualOrder(order);
+
+    // Confirmation Toast
+    const orderToast: ToastNotification = {
+      id: `TOAST-ORD-${Date.now()}`,
+      type: 'SUCCESS',
+      title: `ORDER FILLED // ${order.side} ${order.pair}`,
+      message: `Executed ${order.type} ${order.side} ${order.amount} ${order.pair} @ $${order.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}. Stop Loss: ${order.stopLossPrice ? `$${order.stopLossPrice.toLocaleString()}` : 'None'}.`,
+      timestamp: Date.now(),
+      durationMs: 7000,
+    };
+    setToasts((prev) => [orderToast, ...prev].slice(0, 4));
+
+    // Terminal Log entry
+    const orderLog: SystemLogEntry = {
+      id: `LOG-MANUAL-${Date.now()}`,
+      timestamp: Date.now(),
+      level: 'EXEC',
+      subsystem: 'MANUAL-DESK',
+      message: `Direct Order Filled: ${order.side} ${order.amount} ${order.pair} @ $${order.price.toFixed(2)} | Notional: $${(order.amount * order.price).toFixed(2)} | Latency: ${executedTrade.latencyMs}ms via Hermes Router`,
+    };
+    setSystemLogs((prev) => [orderLog, ...prev].slice(0, 100));
+  };
 
   // System Logs state with 3-second telemetry stream (capped at 100 entries)
   const [systemLogs, setSystemLogs] = useState<SystemLogEntry[]>(INITIAL_SYSTEM_LOGS);
@@ -197,64 +300,156 @@ export default function App() {
     },
   ]);
 
+  // Deep Hermes AI Insights & Macro Correlation Matrix State
+  const [hermesInsights, setHermesInsights] = useState<HermesInsight[]>(INITIAL_HERMES_INSIGHTS);
+  const [macroCorrelation, setMacroCorrelation] = useState<MacroCorrelationMatrix>(INITIAL_MACRO_CORRELATION);
+
   const handleDismissToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
   // simulateHermesBrain(): Runs every 5 seconds.
-  // Checks if any active bot has its drawdown exceeding its set threshold.
-  // If so, Hermes automatically shifts the bot to 'PAUSED' and dispatches an alert toast.
+  // 1. Checks if any active bot exceeds drawdown threshold -> auto-pauses bot and fires alerts.
+  // 2. Evaluates real-time macro correlation matrix (DXY surges -> adjusts XAUUSD bias & bot exposure).
+  // 3. Injects autonomous AI thoughts and technical divergence reasoning into HermesInsights.
   useEffect(() => {
+    let cycleCount = 0;
+
     const brainInterval = setInterval(() => {
-      // Find active bots with auto-pause enabled
+      cycleCount++;
+
+      // --- SECTION 1: Drawdown Guard Check ---
       const activeBots = dashboard.bots.filter(
         (b) => b.status === 'ACTIVE' && b.config.autoPauseEnabled
       );
 
-      if (activeBots.length === 0) return;
+      if (activeBots.length > 0) {
+        for (const bot of activeBots) {
+          const threshold = bot.config.autoPauseThreshold;
+          const currentDrawdown = bot.metrics.currentDrawdownPercent;
 
-      // Check condition: simulate if any active bot crosses threshold or encounters sudden drawdown
-      for (const bot of activeBots) {
-        const threshold = bot.config.autoPauseThreshold;
-        const currentDrawdown = bot.metrics.currentDrawdownPercent;
+          // Condition check: threshold breach or occasional stress test on Epsilon
+          const triggerEvent =
+            currentDrawdown >= threshold ||
+            (Math.random() < 0.12 && bot.engine === 'EPSILON' && cycleCount % 4 === 0);
 
-        // Condition check or probabilistic volatility stress event (~15% chance per cycle on a bot)
-        const triggerEvent = currentDrawdown >= threshold || (Math.random() < 0.15 && bot.engine === 'EPSILON');
+          if (triggerEvent) {
+            const simulatedBreach = Math.max(currentDrawdown, Number((threshold + 0.18).toFixed(2)));
 
-        if (triggerEvent) {
-          const simulatedBreach = Math.max(currentDrawdown, Number((threshold + 0.18).toFixed(2)));
+            pauseBot(bot.id);
 
-          // 1. Shift bot to PAUSED
-          pauseBot(bot.id);
+            const alertToast: ToastNotification = {
+              id: `TOAST-ALERT-${Date.now()}-${bot.id}`,
+              type: 'ALERT',
+              title: 'HERMES BRAIN // AUTO-PAUSE CIRCUIT TRIGGERED',
+              message: `${bot.name} drawdown reached ${simulatedBreach}% (Threshold limit: ${threshold.toFixed(
+                1
+              )}%). Hermes Brain shifted unit status to PAUSED to protect capital.`,
+              timestamp: Date.now(),
+              durationMs: 7000,
+            };
 
-          // 2. Dispatch Alert Toast
-          const alertToast: ToastNotification = {
-            id: `TOAST-ALERT-${Date.now()}-${bot.id}`,
-            type: 'ALERT',
-            title: 'HERMES BRAIN // AUTO-PAUSE CIRCUIT TRIGGERED',
-            message: `${bot.name} drawdown reached ${simulatedBreach}% (Threshold limit: ${threshold.toFixed(
-              1
-            )}%). Hermes Brain shifted unit status to PAUSED to protect capital.`,
-            timestamp: Date.now(),
-            durationMs: 7000,
-          };
+            setToasts((prev) => [alertToast, ...prev.filter((t) => t.id !== alertToast.id)].slice(0, 4));
 
-          setToasts((prev) => [alertToast, ...prev.filter((t) => t.id !== alertToast.id)].slice(0, 4));
+            const riskLog: SystemLogEntry = {
+              id: `LOG-RISK-${Date.now()}`,
+              timestamp: Date.now(),
+              level: 'RISK',
+              subsystem: 'HERMES-BRAIN',
+              message: `CIRCUIT BREAKER TRIGGERED: ${bot.name} paused automatically. Drawdown ${simulatedBreach}% >= ${threshold.toFixed(1)}% threshold limit.`,
+            };
 
-          // 3. Log into SystemLogs
-          const riskLog: SystemLogEntry = {
-            id: `LOG-RISK-${Date.now()}`,
-            timestamp: Date.now(),
-            level: 'RISK',
-            subsystem: 'HERMES-BRAIN',
-            message: `CIRCUIT BREAKER TRIGGERED: ${bot.name} paused automatically. Drawdown ${simulatedBreach}% >= ${threshold.toFixed(1)}% threshold limit.`,
-          };
-
-          setSystemLogs((prev) => [riskLog, ...prev].slice(0, 100));
-
-          // Trigger once per interval
-          break;
+            setSystemLogs((prev) => [riskLog, ...prev].slice(0, 100));
+            break;
+          }
         }
+      }
+
+      // --- SECTION 2: Real-Time Macro Correlation & AI Insights ---
+      setMacroCorrelation((prev) => {
+        const delta = (Math.random() - 0.48) * 0.08;
+        const nextDxy = Number((prev.dxy.value + delta).toFixed(2));
+        const isSurging = nextDxy >= 104.40;
+
+        return {
+          ...prev,
+          dxy: {
+            value: nextDxy,
+            change24h: Number(((nextDxy - 104.0) / 104.0 * 100).toFixed(2)),
+            trend: isSurging ? 'SURGING' : 'NEUTRAL',
+          },
+        };
+      });
+
+      // Every 2 cycles (~10 seconds), generate an actionable Hermes Neural Thought
+      if (cycleCount % 2 === 0) {
+        const scenarios: HermesInsight[] = [
+          {
+            id: `ins-${Date.now()}-dxy`,
+            timestamp: Date.now(),
+            category: 'MACRO_CORRELATION',
+            title: 'DXY Surge ⇄ XAUUSD Bias Recalibration',
+            thought:
+              'Hermes a detectat o creștere bruscă pe DXY (+0.42%). Corelația inversă (-0.84) impune o ajustare defensivă pe XAUUSD: am redus expunerea pe Gamma cu 18% și am strâns spread-urile bid/ask.',
+            actionTaken: 'XAUUSD Bias set to DEFENSIVE (-18% Gamma Exposure)',
+            affectedAsset: 'XAUUSD',
+            affectedEngine: 'GAMMA',
+            confidence: 96,
+            impact: 'DEFENSIVE',
+          },
+          {
+            id: `ins-${Date.now()}-rsi`,
+            timestamp: Date.now(),
+            category: 'TECHNICAL_DIVERGENCE',
+            title: 'H4 RSI Bearish Divergence on BTC',
+            thought:
+              'Hermes a detectat o divergență RSI pe H4 și a redus expunerea lui Alpha cu 20% pentru a preveni riscul de retragere bruscă la suportul $93,400.',
+            actionTaken: 'Alpha Exposure Throttled -20%',
+            affectedAsset: 'BTC/USDT',
+            affectedEngine: 'ALPHA',
+            confidence: 92,
+            impact: 'DEFENSIVE',
+          },
+          {
+            id: `ins-${Date.now()}-arb`,
+            timestamp: Date.now(),
+            category: 'VOLATILITY_REGIME',
+            title: 'Statistical Arbitrage Spread Expansion',
+            thought:
+              'Dislocare de preț de 18 bps detectată pe perechea ETH/USDT între piețele spot și perpetual. Motorul Beta a majorat rotația de lichiditate pentru a captura funding rate-ul pozitiv.',
+            actionTaken: 'Beta Rebalance Yield +$320 Captured',
+            affectedAsset: 'ETH/USDT',
+            affectedEngine: 'BETA',
+            confidence: 95,
+            impact: 'POSITIVE',
+          },
+          {
+            id: `ins-${Date.now()}-sovereign`,
+            timestamp: Date.now(),
+            category: 'LIQUIDITY_SHOCK',
+            title: 'Sergiu Sovereign Neural Re-hedge',
+            thought:
+              'Analiza micro-structurii carnetului de ordine indică acumulare agresivă din partea portofelelor Whale pe BTC. Sergiu Sovereign Core a activat un trailing hedge asimetric.',
+            actionTaken: 'Sovereign Macro Overlay Calibrated',
+            affectedAsset: 'BTC/ETH',
+            affectedEngine: 'SERGIU',
+            confidence: 98,
+            impact: 'POSITIVE',
+          },
+        ];
+
+        const chosenScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+        setHermesInsights((prev) => [chosenScenario, ...prev].slice(0, 15));
+
+        // Inject high-priority insight into SystemLogs
+        const aiLog: SystemLogEntry = {
+          id: `LOG-AI-${Date.now()}`,
+          timestamp: Date.now(),
+          level: 'INFO',
+          subsystem: 'HERMES-AI',
+          message: `${chosenScenario.title}: ${chosenScenario.actionTaken} (Confidence: ${chosenScenario.confidence}%)`,
+        };
+        setSystemLogs((prev) => [aiLog, ...prev].slice(0, 100));
       }
     }, 5000);
 
@@ -386,6 +581,16 @@ export default function App() {
               </span>
             </div>
 
+            {/* Quick Manual Order Execution Trigger */}
+            <button
+              type="button"
+              onClick={() => setIsOrderModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs font-mono transition-all shadow-md shadow-cyan-950/30"
+            >
+              <Zap className="w-3.5 h-3.5 fill-current" />
+              <span className="hidden sm:inline">+ Fast Order</span>
+            </button>
+
             {/* Dark / Light Mode Toggle with LocalStorage Persistence */}
             <button
               type="button"
@@ -414,16 +619,25 @@ export default function App() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 pb-28 md:pb-6">
         {/* KPI Grid: Live Equity, Daily Net with Recharts sparkline, Margin Level, Sentiment */}
-        <section aria-label="Key Performance Indicators">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <section aria-label="Key Performance Indicators" id="kpi-section">
+          {/* Mobile Swipe Hint */}
+          <div className="flex md:hidden items-center justify-between text-[11px] font-mono text-slate-400 mb-2 px-1">
+            <span className="flex items-center gap-1.5 text-cyan-400">
+              <Activity className="w-3.5 h-3.5" />
+              Live Performance Radar
+            </span>
+            <span className="text-slate-500">Swipe metrics →</span>
+          </div>
+
+          <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none pb-2 gap-3.5 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-4">
             {/* 1. Live Equity */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: 0.05 }}
-              className="p-5 rounded-xl bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-800/80 dark:border-slate-800/80 light:border-slate-200 relative overflow-hidden flex flex-col justify-between"
+              className="snap-center shrink-0 w-[84vw] sm:w-[320px] md:w-auto p-5 rounded-xl bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-800/80 dark:border-slate-800/80 light:border-slate-200 relative overflow-hidden flex flex-col justify-between"
             >
               <div className="flex items-center justify-between text-slate-400 mb-2">
                 <span className="text-xs font-mono uppercase tracking-wider flex items-center gap-1.5">
@@ -462,7 +676,7 @@ export default function App() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: 0.1 }}
-              className="p-5 rounded-xl bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-800/80 dark:border-slate-800/80 light:border-slate-200 relative overflow-hidden flex flex-col justify-between"
+              className="snap-center shrink-0 w-[84vw] sm:w-[320px] md:w-auto p-5 rounded-xl bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-800/80 dark:border-slate-800/80 light:border-slate-200 relative overflow-hidden flex flex-col justify-between"
             >
               <div className="flex items-center justify-between text-slate-400 mb-1">
                 <span className="text-xs font-mono uppercase tracking-wider flex items-center gap-1.5">
@@ -537,7 +751,7 @@ export default function App() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: 0.15 }}
-              className="p-5 rounded-xl bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-800/80 dark:border-slate-800/80 light:border-slate-200 relative overflow-hidden flex flex-col justify-between"
+              className="snap-center shrink-0 w-[84vw] sm:w-[320px] md:w-auto p-5 rounded-xl bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-800/80 dark:border-slate-800/80 light:border-slate-200 relative overflow-hidden flex flex-col justify-between"
             >
               <div className="flex items-center justify-between text-slate-400 mb-2">
                 <span className="text-xs font-mono uppercase tracking-wider flex items-center gap-1.5">
@@ -576,7 +790,7 @@ export default function App() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: 0.2 }}
-              className="p-5 rounded-xl bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-800/80 dark:border-slate-800/80 light:border-slate-200 relative overflow-hidden flex flex-col justify-between"
+              className="snap-center shrink-0 w-[84vw] sm:w-[320px] md:w-auto p-5 rounded-xl bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-800/80 dark:border-slate-800/80 light:border-slate-200 relative overflow-hidden flex flex-col justify-between"
             >
               <div className="flex items-center justify-between text-slate-400 mb-2">
                 <span className="text-xs font-mono uppercase tracking-wider flex items-center gap-1.5">
@@ -609,13 +823,22 @@ export default function App() {
         </section>
 
         {/* Section: Advanced Market Microstructure & Volatility Matrix */}
-        <section aria-label="Microstructure & Volatility Analytics" className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <section aria-label="Microstructure & Volatility Analytics" id="analytics-section" className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <VolatilityHeatmap theme={theme} />
           <MarketDepth theme={theme} />
         </section>
 
+        {/* Section: Deep Hermes AI Logic & Cross-Asset Macro Correlation Insights */}
+        <section aria-label="Hermes Neural Brain Insights" id="insights-section">
+          <HermesInsights
+            insights={hermesInsights}
+            correlationMatrix={macroCorrelation}
+            theme={theme}
+          />
+        </section>
+
         {/* Section: Operational Units Header & Filters */}
-        <section aria-label="Operational Trading Units" className="space-y-4 pt-2">
+        <section aria-label="Operational Trading Units" id="bots-section" className="space-y-4 pt-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-800/80">
             <div>
               <div className="flex items-center gap-2">
@@ -632,11 +855,13 @@ export default function App() {
               </p>
             </div>
 
-            {/* Filter Pills */}
+            {/* Filter Pills with Motion Tap Feedback */}
             <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
               {(['ALL', 'ALPHA', 'BETA', 'GAMMA', 'EPSILON', 'SERGIU'] as const).map((eng) => (
-                <button
+                <motion.button
                   key={eng}
+                  whileTap={{ scale: 0.94 }}
+                  whileHover={{ scale: 1.02 }}
                   type="button"
                   onClick={() => setEngineFilter(eng)}
                   className={`px-3 py-1.5 rounded-lg border transition-all ${
@@ -646,13 +871,22 @@ export default function App() {
                   }`}
                 >
                   {eng === 'ALL' ? 'All Units' : eng}
-                </button>
+                </motion.button>
               ))}
             </div>
           </div>
 
-          {/* Operational Units Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {/* Mobile Swipe Prompt */}
+          <div className="flex md:hidden items-center justify-between text-[11px] font-mono text-slate-400 px-1 pt-1">
+            <span className="flex items-center gap-1.5 text-cyan-400">
+              <Layers className="w-3.5 h-3.5" />
+              Active Engines ({filteredBots.length})
+            </span>
+            <span className="text-slate-500">Swipe units →</span>
+          </div>
+
+          {/* Operational Units Snap Carousel on Mobile */}
+          <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none pb-3 gap-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-5">
             {filteredBots.map((bot) => (
               <BotCard
                 key={bot.id}
@@ -791,6 +1025,36 @@ export default function App() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Advanced Order Execution & Dynamic Position Sizing Modal */}
+      <OrderExecutionModal
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+        equityUsd={dashboard.totalPortfolioValueUsd}
+        tickers={dashboard.tickers}
+        bots={dashboard.bots}
+        onExecuteOrder={handleExecuteOrder}
+      />
+
+      {/* Modern Mobile Bottom Navigation Bar */}
+      <MobileBottomNav
+        onOpenOrderModal={() => setIsOrderModalOpen(true)}
+        onOpenDock={() => setIsMobileDockOpen(true)}
+      />
+
+      {/* Modern Mobile Bottom Sheet Control Dock */}
+      <MobileBottomSheet
+        isOpen={isMobileDockOpen}
+        onClose={() => setIsMobileDockOpen(false)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onOpenOrderModal={() => setIsOrderModalOpen(true)}
+        onOpenKillSwitch={() => setKillSwitchModalOpen(true)}
+        selectedEngineFilter={engineFilter}
+        onSelectEngineFilter={setEngineFilter}
+        dashboard={dashboard}
+        latencyMs={latencyMs}
+      />
 
       {/* Institutional Footer */}
       <footer className="mt-auto border-t border-slate-800/80 bg-slate-950 py-4 px-4 sm:px-6 lg:px-8 text-xs font-mono text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-3">

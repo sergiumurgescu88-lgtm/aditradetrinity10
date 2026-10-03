@@ -190,6 +190,44 @@ export interface ToastNotification {
   durationMs?: number;
 }
 
+export type InsightCategory = 
+  | 'MACRO_CORRELATION' 
+  | 'TECHNICAL_DIVERGENCE' 
+  | 'VOLATILITY_REGIME' 
+  | 'LIQUIDITY_SHOCK';
+
+export interface HermesInsight {
+  id: string;
+  timestamp: number;
+  category: InsightCategory;
+  title: string;
+  thought: string;
+  actionTaken: string;
+  affectedAsset: string;
+  affectedEngine?: TrinityEngineType | 'PORTFOLIO_WIDE';
+  confidence: number; // 0 - 100
+  impact: 'POSITIVE' | 'DEFENSIVE' | 'NEUTRAL';
+}
+
+export interface MacroCorrelationMatrix {
+  dxy: {
+    value: number;
+    change24h: number;
+    trend: 'SURGING' | 'NEUTRAL' | 'DROPPING';
+  };
+  us10y: {
+    value: number;
+    change24h: number;
+  };
+  spx: {
+    value: number;
+    change24h: number;
+  };
+  btcGoldCorr: number; // -1 to +1
+  dxyGoldCorr: number; // -1 to +1
+  dxyBtcCorr: number;  // -1 to +1
+}
+
 export type ConnectionStatus = 
   | 'INITIALIZING' 
   | 'CONNECTING' 
@@ -238,6 +276,7 @@ export type HermesWsClientCommand =
   | 'PAUSE_BOT'
   | 'RESTART_BOT'
   | 'EMERGENCY_STOP'
+  | 'EXECUTE_ORDER'
   | 'PING'
   | 'SET_RISK_PROFILE';
 
