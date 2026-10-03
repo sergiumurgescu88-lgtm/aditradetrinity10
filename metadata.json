@@ -1,0 +1,7 @@
+{
+  "name": "Hermes Trinity Core",
+  "description": "Hermes Trinity Core - High-Performance Algorithmic Trading & Analytics Dashboard",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
