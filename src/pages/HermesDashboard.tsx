@@ -525,29 +525,32 @@ export function HermesDashboard() {
       </div>
 
       {/* Main Institutional Header */}
-      <header className="sticky top-0 z-30 backdrop-blur-xl bg-slate-950/85 dark:bg-slate-950/85 light:bg-white/85 border-b border-slate-800/80 dark:border-slate-800/80 light:border-slate-200">
+      <header
+        id="hermes-dashboard-header"
+        className="sticky top-0 z-30 backdrop-blur-xl bg-slate-950/85 dark:bg-slate-950/85 light:bg-white/85 border-b border-slate-800/80 dark:border-slate-800/80 light:border-slate-200"
+      >
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
           {/* Logo & Brand Title */}
           <div
             onClick={() => navigate('/')}
             title="Return to Gateway"
-            className="cursor-pointer flex items-center gap-2 sm:gap-3.5 group min-w-0"
+            className="cursor-pointer flex items-center gap-2.5 sm:gap-3.5 group min-w-0"
           >
             <div className="relative shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 via-slate-900 to-emerald-500/20 border border-cyan-500/40 shadow-sm shadow-cyan-500/20 group-hover:border-cyan-400 transition-colors">
               <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping opacity-75" />
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400" />
             </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <h1 className="text-base sm:text-lg font-black tracking-wider uppercase bg-gradient-to-r from-cyan-400 via-emerald-400 to-indigo-400 bg-clip-text text-transparent truncate">
+            <div className="min-w-0 flex flex-col justify-center">
+              <div className="flex items-center gap-1.5 sm:gap-2 leading-tight">
+                <h1 className="text-lg sm:text-2xl font-black tracking-wider uppercase bg-gradient-to-r from-cyan-400 via-emerald-400 to-indigo-400 bg-clip-text text-transparent truncate drop-shadow-sm">
                   AM Team
                 </h1>
-                <span className="hidden sm:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shrink-0">
+                <span className="hidden sm:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shrink-0 font-bold">
                   LIVE
                 </span>
               </div>
-              <p className="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate">
+              <p className="text-[10px] sm:text-xs font-mono text-slate-400 truncate mt-0.5">
                 Institutional Algorithmic Execution
               </p>
             </div>
