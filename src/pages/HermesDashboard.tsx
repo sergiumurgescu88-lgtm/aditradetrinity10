@@ -526,42 +526,42 @@ export function HermesDashboard() {
 
       {/* Main Institutional Header */}
       <header className="sticky top-0 z-30 backdrop-blur-xl bg-slate-950/85 dark:bg-slate-950/85 light:bg-white/85 border-b border-slate-800/80 dark:border-slate-800/80 light:border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
           {/* Logo & Brand Title */}
           <div
             onClick={() => navigate('/')}
             title="Return to Gateway"
-            className="cursor-pointer flex items-center gap-3.5 group"
+            className="cursor-pointer flex items-center gap-2 sm:gap-3.5 group min-w-0"
           >
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 via-slate-900 to-emerald-500/20 border border-cyan-500/40 shadow-sm shadow-cyan-500/20 group-hover:border-cyan-400 transition-colors">
-              <Zap className="w-5 h-5 text-cyan-400" />
+            <div className="relative shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 via-slate-900 to-emerald-500/20 border border-cyan-500/40 shadow-sm shadow-cyan-500/20 group-hover:border-cyan-400 transition-colors">
+              <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping opacity-75" />
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-black tracking-wider uppercase bg-gradient-to-r from-cyan-400 via-emerald-400 to-indigo-400 bg-clip-text text-transparent">
-                  HERMES TRINITY
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h1 className="text-base sm:text-lg font-black tracking-wider uppercase bg-gradient-to-r from-cyan-400 via-emerald-400 to-indigo-400 bg-clip-text text-transparent truncate">
+                  AM Team
                 </h1>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
-                  CORE v4.8
+                <span className="hidden sm:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shrink-0">
+                  LIVE
                 </span>
               </div>
-              <p className="text-[11px] font-mono text-slate-400">
-                Institutional Algorithmic Execution Hub
+              <p className="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate">
+                Institutional Algorithmic Execution
               </p>
             </div>
           </div>
 
           {/* Controls: Fast Order, Connection Status, Dark/Light Toggle, Kill Switch */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Quick Manual Order Execution Trigger */}
             <motion.button
               whileTap={{ scale: 0.94 }}
               whileHover={{ scale: 1.02 }}
               type="button"
               onClick={() => setIsOrderModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs font-mono transition-all shadow-md shadow-cyan-950/30"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs font-mono transition-all shadow-md shadow-cyan-950/30"
             >
               <Zap className="w-3.5 h-3.5 fill-current" />
               <span className="hidden sm:inline">+ Fast Order</span>
@@ -571,7 +571,7 @@ export function HermesDashboard() {
             <div
               onClick={reconnect}
               title="Click to Force Reconnect Telemetry Gateway"
-              className="cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/80 dark:bg-slate-900/80 light:bg-slate-100 border border-slate-800 dark:border-slate-800 light:border-slate-300 hover:border-slate-700 transition-colors"
+              className="cursor-pointer flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-slate-900/80 dark:bg-slate-900/80 light:bg-slate-100 border border-slate-800 dark:border-slate-800 light:border-slate-300 hover:border-slate-700 transition-colors"
             >
               <span className="relative flex h-2 w-2">
                 {isConnected ? (
@@ -583,10 +583,10 @@ export function HermesDashboard() {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400 animate-pulse" />
                 )}
               </span>
-              <span className="text-xs font-mono font-medium text-slate-300 dark:text-slate-300 light:text-slate-700">
+              <span className="hidden md:inline text-xs font-mono font-medium text-slate-300 dark:text-slate-300 light:text-slate-700">
                 {connectionStatus}
               </span>
-              <span className="text-[11px] font-mono text-cyan-400 pl-1 border-l border-slate-700">
+              <span className="text-[11px] font-mono text-cyan-400 md:pl-1 md:border-l md:border-slate-700">
                 {latencyMs}ms
               </span>
             </div>
@@ -596,12 +596,12 @@ export function HermesDashboard() {
               type="button"
               onClick={toggleTheme}
               title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
-              className="p-2 rounded-lg bg-slate-900/80 dark:bg-slate-900/80 light:bg-slate-100 text-slate-300 dark:text-slate-300 light:text-slate-700 border border-slate-800 dark:border-slate-800 light:border-slate-300 hover:border-slate-700 transition-colors"
+              className="p-1.5 sm:p-2 rounded-lg bg-slate-900/80 dark:bg-slate-900/80 light:bg-slate-100 text-slate-300 dark:text-slate-300 light:text-slate-700 border border-slate-800 dark:border-slate-800 light:border-slate-300 hover:border-slate-700 transition-colors"
             >
               {theme === 'dark' ? (
-                <Sun className="w-4 h-4 text-amber-400" />
+                <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
               ) : (
-                <Moon className="w-4 h-4 text-cyan-500" />
+                <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-500" />
               )}
             </button>
 
@@ -619,9 +619,9 @@ export function HermesDashboard() {
             <button
               type="button"
               onClick={() => setKillSwitchModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-mono font-semibold transition-all shadow-sm shadow-rose-950/20"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-mono font-semibold transition-all shadow-sm shadow-rose-950/20"
             >
-              <ShieldAlert className="w-4 h-4 text-rose-400" />
+              <ShieldAlert className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-400" />
               <span className="hidden sm:inline">Emergency Halt</span>
             </button>
           </div>
