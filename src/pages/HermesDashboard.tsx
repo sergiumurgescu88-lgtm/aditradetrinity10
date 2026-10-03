@@ -3,7 +3,7 @@
  * High-performance algorithmic trading control center for institutional units.
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -30,19 +30,56 @@ import {
   CheckCircle2,
   X,
   LogOut,
+  Bell,
 } from 'lucide-react';
 
 import { useHermesWebSocket } from '../hooks/useHermesWebSocket';
 import { BotCard } from '../components/BotCard';
-import { VolatilityHeatmap } from '../components/VolatilityHeatmap';
-import { MarketDepth } from '../components/MarketDepth';
 import { SystemLogs } from '../components/SystemLogs';
 import { TradeHistory } from '../components/TradeHistory';
 import { NotificationToast } from '../components/NotificationToast';
-import { OrderExecutionModal } from '../components/OrderExecutionModal';
 import { HermesInsights } from '../components/HermesInsights';
 import { MobileBottomNav } from '../components/MobileBottomNav';
 import { MobileBottomSheet } from '../components/MobileBottomSheet';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+
+// Lazy load heavy computational & charting modules (Pasul 11 - Optimizare Performanță)
+const VolatilityHeatmap = lazy(() => import('../components/VolatilityHeatmap'));
+const MarketDepth = lazy(() => import('../components/MarketDepth'));
+const OrderExecutionModal = lazy(() => import('../components/OrderExecutionModal'));
+
+/**
+ * Minimalist Institutional Cyan Spinners for Lazy-Loaded Components
+ */
+function MinimalLoader({ label = 'Se încarcă modulul...' }: { label?: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center p-8 sm:p-12 min-h-[280px] rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400 font-mono">
+      <div className="relative w-8 h-8 mb-3">
+        <div className="w-8 h-8 rounded-full border-2 border-slate-800 border-t-cyan-400 animate-spin" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+        </div>
+      </div>
+      <span className="text-xs text-slate-400 tracking-wide">{label}</span>
+    </div>
+  );
+}
+
+function ModalLoader() {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+      <div className="flex flex-col items-center gap-3 p-6 rounded-2xl bg-slate-900 border border-cyan-500/30 font-mono text-xs text-cyan-400 shadow-2xl">
+        <div className="relative w-8 h-8">
+          <div className="w-8 h-8 rounded-full border-2 border-slate-800 border-t-cyan-400 animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+          </div>
+        </div>
+        <span>Se inițializează modulul Fast Order...</span>
+      </div>
+    </div>
+  );
+}
 import type {
   Bot,
   TrinityEngineType,
@@ -529,7 +566,7 @@ export function HermesDashboard() {
         id="hermes-dashboard-header"
         className="sticky top-0 z-30 backdrop-blur-xl bg-slate-950/85 dark:bg-slate-950/85 light:bg-white/85 border-b border-slate-800/80 dark:border-slate-800/80 light:border-slate-200"
       >
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-[4.25rem] py-2 flex items-center justify-between gap-2 sm:gap-4">
           {/* Logo & Brand Title */}
           <div
             onClick={() => navigate('/')}
@@ -558,6 +595,48 @@ export function HermesDashboard() {
               <p className="text-[10px] sm:text-xs font-mono text-slate-400 truncate mt-0.5 relative">
                 Institutional Algorithmic Execution
               </p>
+
+              {/* Tiny Subtle Action Buttons / System Shortcuts */}
+              <div className="flex items-center gap-1 sm:gap-1.5 mt-1 relative">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    document.getElementById('kpi-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  title="Jump to Real-Time System Status & Equity"
+                  className="px-1.5 py-0.5 rounded text-[9px] font-mono tracking-tight text-slate-400 hover:text-cyan-300 bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/40 transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <Activity className="w-2.5 h-2.5 text-cyan-400 shrink-0" />
+                  <span>Status</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    document.getElementById('telemetry-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  title="Jump to Telemetry Logs & Alerts"
+                  className="px-1.5 py-0.5 rounded text-[9px] font-mono tracking-tight text-slate-400 hover:text-amber-300 bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <Bell className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+                  <span>Alerts</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    document.getElementById('bots-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  title="Jump to Multi-Engine Bot Fleet"
+                  className="hidden xs:flex px-1.5 py-0.5 rounded text-[9px] font-mono tracking-tight text-slate-400 hover:text-emerald-300 bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/40 transition-colors items-center gap-1 cursor-pointer"
+                >
+                  <Layers className="w-2.5 h-2.5 text-emerald-400 shrink-0" />
+                  <span>Engines</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -841,96 +920,108 @@ export function HermesDashboard() {
         </section>
 
         {/* Section: Advanced Market Microstructure & Volatility Matrix */}
-        <section aria-label="Microstructure & Volatility Analytics" id="analytics-section" className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <VolatilityHeatmap theme={theme} />
-          <MarketDepth theme={theme} />
-        </section>
+        <ErrorBoundary title="Modul analiză volatilitate & carnet de comenzi indisponibil temporar">
+          <section aria-label="Microstructure & Volatility Analytics" id="analytics-section" className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <Suspense fallback={<MinimalLoader label="Se încarcă matricea de volatilitate (D3 Engine)..." />}>
+              <VolatilityHeatmap theme={theme} />
+            </Suspense>
+            <Suspense fallback={<MinimalLoader label="Se încarcă carnetul de ordine L2/L3 (Market Depth)..." />}>
+              <MarketDepth theme={theme} />
+            </Suspense>
+          </section>
+        </ErrorBoundary>
 
         {/* Section: Deep Hermes AI Logic & Cross-Asset Macro Correlation Insights */}
-        <section aria-label="Hermes Neural Brain Insights" id="insights-section">
-          <HermesInsights
-            insights={hermesInsights}
-            correlationMatrix={macroCorrelation}
-            theme={theme}
-          />
-        </section>
+        <ErrorBoundary title="Modulul neural de analiză macro indisponibil temporar">
+          <section aria-label="Hermes Neural Brain Insights" id="insights-section">
+            <HermesInsights
+              insights={hermesInsights}
+              correlationMatrix={macroCorrelation}
+              theme={theme}
+            />
+          </section>
+        </ErrorBoundary>
 
         {/* Section: Operational Units Header & Filters */}
-        <section aria-label="Operational Trading Units" id="bots-section" className="space-y-4 pt-2">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-800/80">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-cyan-400" />
-                  Operational Units ({dashboard.bots.length})
-                </h2>
-                <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                  {dashboard.activeBotsCount} Active
-                </span>
+        <ErrorBoundary title="Flota de unități algoritmice indisponibilă temporar">
+          <section aria-label="Operational Trading Units" id="bots-section" className="space-y-4 pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-800/80">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
+                    <Layers className="w-5 h-5 text-cyan-400" />
+                    Operational Units ({dashboard.bots.length})
+                  </h2>
+                  <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                    {dashboard.activeBotsCount} Active
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mt-0.5 font-mono">
+                  Alpha, Beta, Gamma, Epsilon, and Sovereign Sergiu Neural Engine
+                </p>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5 font-mono">
-                Alpha, Beta, Gamma, Epsilon, and Sovereign Sergiu Neural Engine
-              </p>
+
+              {/* Filter Pills with Motion Tap Feedback */}
+              <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
+                {(['ALL', 'ALPHA', 'BETA', 'GAMMA', 'EPSILON', 'SERGIU'] as const).map((eng) => (
+                  <motion.button
+                    key={eng}
+                    whileTap={{ scale: 0.94 }}
+                    whileHover={{ scale: 1.02 }}
+                    type="button"
+                    onClick={() => setEngineFilter(eng)}
+                    className={`px-3 py-1.5 rounded-lg border transition-all ${
+                      engineFilter === eng
+                        ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/50 shadow-sm shadow-cyan-500/10 font-bold'
+                        : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-200'
+                    }`}
+                  >
+                    {eng === 'ALL' ? 'All Units' : eng}
+                  </motion.button>
+                ))}
+              </div>
             </div>
 
-            {/* Filter Pills with Motion Tap Feedback */}
-            <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
-              {(['ALL', 'ALPHA', 'BETA', 'GAMMA', 'EPSILON', 'SERGIU'] as const).map((eng) => (
-                <motion.button
-                  key={eng}
-                  whileTap={{ scale: 0.94 }}
-                  whileHover={{ scale: 1.02 }}
-                  type="button"
-                  onClick={() => setEngineFilter(eng)}
-                  className={`px-3 py-1.5 rounded-lg border transition-all ${
-                    engineFilter === eng
-                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/50 shadow-sm shadow-cyan-500/10 font-bold'
-                      : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-200'
-                  }`}
-                >
-                  {eng === 'ALL' ? 'All Units' : eng}
-                </motion.button>
+            {/* Mobile Swipe Prompt */}
+            <div className="flex md:hidden items-center justify-between text-[11px] font-mono text-slate-400 px-1 pt-1">
+              <span className="flex items-center gap-1.5 text-cyan-400">
+                <Layers className="w-3.5 h-3.5" />
+                Active Engines ({filteredBots.length})
+              </span>
+              <span className="text-slate-500">Swipe units →</span>
+            </div>
+
+            {/* Operational Units Snap Carousel on Mobile */}
+            <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none pb-3 gap-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-5">
+              {filteredBots.map((bot) => (
+                <BotCard
+                  key={bot.id}
+                  bot={bot}
+                  onToggleStatus={handleToggleBot}
+                  onToggleAutoPause={toggleAutoPause}
+                  onSelectBot={(id) => {
+                    const b = dashboard.bots.find((x) => x.id === id);
+                    if (b) setActiveBotModal(b);
+                  }}
+                />
               ))}
             </div>
-          </div>
 
-          {/* Mobile Swipe Prompt */}
-          <div className="flex md:hidden items-center justify-between text-[11px] font-mono text-slate-400 px-1 pt-1">
-            <span className="flex items-center gap-1.5 text-cyan-400">
-              <Layers className="w-3.5 h-3.5" />
-              Active Engines ({filteredBots.length})
-            </span>
-            <span className="text-slate-500">Swipe units →</span>
-          </div>
-
-          {/* Operational Units Snap Carousel on Mobile */}
-          <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none pb-3 gap-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-5">
-            {filteredBots.map((bot) => (
-              <BotCard
-                key={bot.id}
-                bot={bot}
-                onToggleStatus={handleToggleBot}
-                onToggleAutoPause={toggleAutoPause}
-                onSelectBot={(id) => {
-                  const b = dashboard.bots.find((x) => x.id === id);
-                  if (b) setActiveBotModal(b);
-                }}
-              />
-            ))}
-          </div>
-
-          {filteredBots.length === 0 && (
-            <div className="p-12 text-center rounded-xl bg-slate-900/40 border border-slate-800 text-slate-400 font-mono">
-              No operational units matching the selected filter.
-            </div>
-          )}
-        </section>
+            {filteredBots.length === 0 && (
+              <div className="p-12 text-center rounded-xl bg-slate-900/40 border border-slate-800 text-slate-400 font-mono">
+                No operational units matching the selected filter.
+              </div>
+            )}
+          </section>
+        </ErrorBoundary>
 
         {/* Section: Live Order Executions & Terminal Telemetry */}
-        <section aria-label="Execution Telemetry & Order History" className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <SystemLogs logs={systemLogs} onClearLogs={() => setSystemLogs([])} />
-          <TradeHistory trades={dashboard.recentTrades} />
-        </section>
+        <ErrorBoundary title="Modulul de telemetrie & jurnal tranzacții indisponibil temporar">
+          <section aria-label="Execution Telemetry & Order History" id="telemetry-section" className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <SystemLogs logs={systemLogs} onClearLogs={() => setSystemLogs([])} />
+            <TradeHistory trades={dashboard.recentTrades} />
+          </section>
+        </ErrorBoundary>
       </main>
 
       {/* Circuit Breaker Kill-Switch Modal */}
@@ -1047,14 +1138,18 @@ export function HermesDashboard() {
       </AnimatePresence>
 
       {/* Advanced Order Execution & Dynamic Position Sizing Modal */}
-      <OrderExecutionModal
-        isOpen={isOrderModalOpen}
-        onClose={() => setIsOrderModalOpen(false)}
-        equityUsd={dashboard.totalPortfolioValueUsd}
-        tickers={dashboard.tickers}
-        bots={dashboard.bots}
-        onExecuteOrder={handleExecuteOrder}
-      />
+      {isOrderModalOpen && (
+        <Suspense fallback={<ModalLoader />}>
+          <OrderExecutionModal
+            isOpen={isOrderModalOpen}
+            onClose={() => setIsOrderModalOpen(false)}
+            equityUsd={dashboard.totalPortfolioValueUsd}
+            tickers={dashboard.tickers}
+            bots={dashboard.bots}
+            onExecuteOrder={handleExecuteOrder}
+          />
+        </Suspense>
+      )}
 
       {/* Modern Mobile Bottom Navigation Bar */}
       <MobileBottomNav

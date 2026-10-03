@@ -268,3 +268,5 @@ export function VolatilityHeatmap({ theme = 'dark' }: VolatilityHeatmapProps) {
     </div>
   );
 }
+
+export default VolatilityHeatmap;

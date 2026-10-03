@@ -207,3 +207,5 @@ export function MarketDepth({ theme = 'dark' }: MarketDepthProps) {
     </div>
   );
 }
+
+export default MarketDepth;

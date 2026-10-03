@@ -97,6 +97,7 @@ export interface TradeHistory {
   status: OrderStatus;
   timestamp: number;
   latencyMs: number;
+  slippagePips?: number;
   txHash?: string;
   executionVenue: string;
 }

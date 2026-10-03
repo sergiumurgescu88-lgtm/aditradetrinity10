@@ -95,6 +95,18 @@ const INITIAL_DASHBOARD_DATA: DashboardData = {
       spread: 0.04,
       lastUpdated: Date.now(),
     },
+    'XAUUSD': {
+      pair: 'XAUUSD',
+      price: 2654.50,
+      change24h: 0.92,
+      volume24hUsd: 1845000000,
+      high24h: 2664.80,
+      low24h: 2641.20,
+      bidPrice: 2654.35,
+      askPrice: 2654.65,
+      spread: 0.30,
+      lastUpdated: Date.now(),
+    },
   },
   bots: [
     {
@@ -497,6 +509,7 @@ export function useHermesWebSocket(options: UseHermesWebSocketOptions = {}) {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const heartbeatTimerRef = useRef<NodeJS.Timeout | null>(null);
   const simulationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const tickTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pingTimestampRef = useRef<number>(0);
   const reconnectAttemptsRef = useRef<number>(0);
   const isMountedRef = useRef<boolean>(true);
@@ -646,22 +659,72 @@ export function useHermesWebSocket(options: UseHermesWebSocketOptions = {}) {
   // High-Fidelity Streaming Generator (active in mock environment or network loss)
   const startSimulationStream = useCallback(() => {
     if (simulationTimerRef.current) clearInterval(simulationTimerRef.current);
+    if (tickTimerRef.current) clearInterval(tickTimerRef.current);
 
+    // Continuous Institutional 'Tick-by-Tick' Real-Time Micro-Feed for XAUUSD (Spot Gold)
+    // Simulates realistic liquidity depth, fraction-of-cent micro-oscillations, and dynamic latency jitter
+    tickTimerRef.current = setInterval(() => {
+      if (!isMountedRef.current) return;
+
+      setState((prev) => {
+        const goldTicker = prev.dashboard.tickers['XAUUSD'];
+        if (!goldTicker) return prev;
+
+        // Realistic institutional tick move: -$0.12 to +$0.12 with slight momentum/drift
+        const microStep = (Math.random() - 0.492) * 0.16;
+        const newGoldPrice = Number((goldTicker.price + microStep).toFixed(2));
+        const spread = Number((0.20 + Math.random() * 0.12).toFixed(2)); // tight institutional 0.20 - 0.32 spread
+        const high24h = Math.max(goldTicker.high24h, newGoldPrice);
+        const low24h = Math.min(goldTicker.low24h, newGoldPrice);
+
+        // Variable institutional latency: strictly between 8ms and 45ms
+        const dynamicLatency = Math.floor(8 + Math.random() * 37);
+
+        return {
+          ...prev,
+          latencyMs: dynamicLatency,
+          lastHeartbeat: Date.now(),
+          dashboard: {
+            ...prev.dashboard,
+            systemHealth: {
+              ...prev.dashboard.systemHealth,
+              networkLatencyMs: dynamicLatency,
+            },
+            tickers: {
+              ...prev.dashboard.tickers,
+              XAUUSD: {
+                ...goldTicker,
+                price: newGoldPrice,
+                bidPrice: Number((newGoldPrice - spread / 2).toFixed(2)),
+                askPrice: Number((newGoldPrice + spread / 2).toFixed(2)),
+                spread,
+                high24h,
+                low24h,
+                lastUpdated: Date.now(),
+              },
+            },
+          },
+        };
+      });
+    }, 550);
+
+    // Secondary Macro Engine: Crypto Ticker Jumps, Strategy Signals & Autonomous Executions
     simulationTimerRef.current = setInterval(() => {
       if (!isMountedRef.current) return;
 
       const randomEvent = Math.random();
+      const dynamicLatency = Math.floor(8 + Math.random() * 37);
 
-      // 1. Price Ticker Fluctuations (70% probability)
-      if (randomEvent < 0.7) {
-        const pairs = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'];
+      // 1. Price Ticker Fluctuations for Crypto (65% probability)
+      if (randomEvent < 0.65) {
+        const pairs = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'AVAX/USDT'];
         const chosenPair = pairs[Math.floor(Math.random() * pairs.length)];
 
         setState((prev) => {
           const currentTicker = prev.dashboard.tickers[chosenPair];
           if (!currentTicker) return prev;
 
-          const deltaPercent = (Math.random() * 0.4 - 0.19) / 100;
+          const deltaPercent = (Math.random() * 0.3 - 0.14) / 100;
           const newPrice = Number((currentTicker.price * (1 + deltaPercent)).toFixed(2));
           const spread = Number((chosenPair.includes('BTC') ? 2 + Math.random() * 2 : 0.4 + Math.random() * 0.3).toFixed(2));
 
@@ -677,7 +740,7 @@ export function useHermesWebSocket(options: UseHermesWebSocketOptions = {}) {
           return {
             ...prev,
             lastHeartbeat: Date.now(),
-            latencyMs: Math.floor(8 + Math.random() * 12),
+            latencyMs: dynamicLatency,
             dashboard: {
               ...prev.dashboard,
               tickers: {
@@ -689,21 +752,31 @@ export function useHermesWebSocket(options: UseHermesWebSocketOptions = {}) {
         });
       }
 
-      // 2. Simulated Bot Order Execution (25% probability)
-      else if (randomEvent < 0.95) {
+      // 2. Simulated Bot Order Execution with Slippage (28% probability)
+      else if (randomEvent < 0.93) {
         setState((prev) => {
           const activeBots = prev.dashboard.bots.filter(b => b.status === 'ACTIVE');
           if (activeBots.length === 0) return prev;
 
           const bot = activeBots[Math.floor(Math.random() * activeBots.length)];
           const side: OrderSide = Math.random() > 0.48 ? 'BUY' : 'SELL';
-          const ticker = prev.dashboard.tickers[bot.config.activePairs[0] ?? 'BTC/USDT'] ?? prev.dashboard.tickers['BTC/USDT'];
+          const pair = bot.config.activePairs[0] ?? 'BTC/USDT';
+          const ticker = prev.dashboard.tickers[pair] ?? prev.dashboard.tickers['BTC/USDT'];
 
-          const executionPrice = ticker.price;
+          // Realistic Slippage Simulation for Institutional Engine Executions
+          // In real market conditions, orders occasionally slip by ~0.1 - 0.3 pips (or 0.01 - 0.03 for Gold/FX)
+          const isGold = pair === 'XAUUSD';
+          const pipMultiplier = isGold ? 0.01 : pair.includes('BTC') ? 0.5 : 0.01;
+          const willSlip = Math.random() < 0.40; // 40% probability of micro-slippage
+          const slippagePips = willSlip ? Number((0.10 + Math.random() * 0.20).toFixed(2)) : 0;
+          const slippageOffset = side === 'BUY' ? (slippagePips * pipMultiplier) : -(slippagePips * pipMultiplier);
+          const executionPrice = Number((ticker.price + slippageOffset).toFixed(2));
+
           const isAlpha = bot.engine === 'ALPHA';
           const isBeta = bot.engine === 'BETA';
 
-          const amount = isAlpha ? Number((0.15 + Math.random() * 0.5).toFixed(3))
+          const amount = isGold ? Number((10 + Math.random() * 30).toFixed(1))
+                       : isAlpha ? Number((0.15 + Math.random() * 0.5).toFixed(3))
                        : isBeta ? Number((1.5 + Math.random() * 4.0).toFixed(2))
                        : Number((20 + Math.random() * 60).toFixed(1));
 
@@ -718,7 +791,7 @@ export function useHermesWebSocket(options: UseHermesWebSocketOptions = {}) {
             botId: bot.id,
             botName: bot.name,
             engine: bot.engine,
-            pair: bot.config.activePairs[0] ?? 'BTC/USDT',
+            pair,
             side,
             type: 'MARKET',
             amount,
@@ -729,8 +802,9 @@ export function useHermesWebSocket(options: UseHermesWebSocketOptions = {}) {
             pnlPercentage: pnlPct,
             status: 'FILLED',
             timestamp: Date.now(),
-            latencyMs: Math.floor(6 + Math.random() * 15),
-            executionVenue: isAlpha ? 'Binance Direct-L3' : isBeta ? 'Deribit Arb Route' : 'Raydium CLMM v3',
+            latencyMs: dynamicLatency,
+            slippagePips: willSlip ? slippagePips : undefined,
+            executionVenue: isGold ? 'LMAX Gold Direct' : isAlpha ? 'Binance Direct-L3' : isBeta ? 'Deribit Arb Route' : 'Raydium CLMM v3',
             txHash: `0x${Math.random().toString(16).substring(2, 8)}...${Math.random().toString(16).substring(2, 6)}`,
           };
 
@@ -763,6 +837,7 @@ export function useHermesWebSocket(options: UseHermesWebSocketOptions = {}) {
 
           return {
             ...prev,
+            latencyMs: dynamicLatency,
             dashboard: {
               ...prev.dashboard,
               recentTrades: updatedTrades,
@@ -776,11 +851,11 @@ export function useHermesWebSocket(options: UseHermesWebSocketOptions = {}) {
         });
       }
 
-      // 3. New Trinity Strategy Signals (5% probability)
+      // 3. New Trinity Strategy Signals (7% probability)
       else {
-        const engines: TrinityEngineType[] = ['ALPHA', 'BETA', 'GAMMA'];
+        const engines: TrinityEngineType[] = ['ALPHA', 'BETA', 'GAMMA', 'SERGIU'];
         const selectedEngine = engines[Math.floor(Math.random() * engines.length)];
-        const pairs = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'];
+        const pairs = ['XAUUSD', 'BTC/USDT', 'ETH/USDT', 'SOL/USDT'];
         const pair = pairs[Math.floor(Math.random() * pairs.length)];
 
         const newSignal: TrinitySignal = {
@@ -790,11 +865,11 @@ export function useHermesWebSocket(options: UseHermesWebSocketOptions = {}) {
           pair,
           direction: Math.random() > 0.5 ? 'LONG' : 'SHORT',
           confidence: Math.floor(75 + Math.random() * 22),
-          indicatorName: selectedEngine === 'ALPHA' ? 'Volatility Breakout Alpha Grid' : selectedEngine === 'BETA' ? 'Cross-DEX Arbitrage Liquidity Inbalance' : 'Microstructure Orderbook Imbalance (Gamma)',
+          indicatorName: pair === 'XAUUSD' ? 'Institutional Bullion Order Flow Imbalance' : selectedEngine === 'ALPHA' ? 'Volatility Breakout Alpha Grid' : selectedEngine === 'BETA' ? 'Cross-DEX Arbitrage Liquidity Inbalance' : 'Microstructure Orderbook Imbalance (Gamma)',
           timestamp: Date.now(),
-          entryPrice: pair.includes('BTC') ? 94200 : pair.includes('ETH') ? 3340 : 188,
-          targetPrice: pair.includes('BTC') ? 96100 : pair.includes('ETH') ? 3420 : 195,
-          invalidationPrice: pair.includes('BTC') ? 93500 : pair.includes('ETH') ? 3290 : 184,
+          entryPrice: pair === 'XAUUSD' ? 2654.50 : pair.includes('BTC') ? 94200 : pair.includes('ETH') ? 3340 : 188,
+          targetPrice: pair === 'XAUUSD' ? 2672.00 : pair.includes('BTC') ? 96100 : pair.includes('ETH') ? 3420 : 195,
+          invalidationPrice: pair === 'XAUUSD' ? 2642.00 : pair.includes('BTC') ? 93500 : pair.includes('ETH') ? 3290 : 184,
         };
 
         handleServerMessage({
@@ -1078,9 +1153,27 @@ export function useHermesWebSocket(options: UseHermesWebSocketOptions = {}) {
     executionVenue?: string;
   }): TradeHistory => {
     const targetBot = state.dashboard.bots.find((b) => b.id === params.botId) ?? state.dashboard.bots[0];
-    const totalValue = Number((params.amount * params.price).toFixed(2));
+
+    // Institutional Slippage Simulation:
+    // In real market conditions, orders occasionally slip by ~0.1 - 0.3 pips (or 0.01 - 0.03 for Gold/FX)
+    const isGold = params.pair === 'XAUUSD';
+    const pipUnit = isGold ? 0.01 : params.pair.includes('BTC') ? 0.5 : 0.01;
+    const hasSlippage = params.type === 'MARKET' ? Math.random() < 0.45 : Math.random() < 0.15;
+
+    let slippagePips = 0;
+    let executionPrice = params.price;
+    if (hasSlippage) {
+      // 0.10 to 0.30 pips slippage
+      slippagePips = Number((0.10 + Math.random() * 0.20).toFixed(2));
+      const slippageOffset = params.side === 'BUY' ? (slippagePips * pipUnit) : -(slippagePips * pipUnit);
+      executionPrice = Number((params.price + slippageOffset).toFixed(2));
+    }
+
+    const totalValue = Number((params.amount * executionPrice).toFixed(2));
     const fee = Number((totalValue * 0.0004).toFixed(2));
-    const latency = Math.floor(6 + Math.random() * 10);
+
+    // Variable institutional latency: strictly between 8ms and 45ms
+    const latency = Math.floor(8 + Math.random() * 37);
 
     const newTrade: TradeHistory = {
       id: `ORD-${Date.now().toString().slice(-6)}`,
@@ -1091,7 +1184,7 @@ export function useHermesWebSocket(options: UseHermesWebSocketOptions = {}) {
       side: params.side,
       type: params.type,
       amount: params.amount,
-      executionPrice: params.price,
+      executionPrice,
       stopPrice: params.stopLossPrice,
       targetPrice: params.takeProfitPrice,
       totalValueUsd: totalValue,
@@ -1101,7 +1194,8 @@ export function useHermesWebSocket(options: UseHermesWebSocketOptions = {}) {
       status: 'FILLED',
       timestamp: Date.now(),
       latencyMs: latency,
-      executionVenue: params.executionVenue || 'Hermes Smart-Router L3',
+      slippagePips: hasSlippage ? slippagePips : undefined,
+      executionVenue: params.executionVenue || (isGold ? 'LMAX Gold Direct' : 'Hermes Smart-Router L3'),
       txHash: `0x${Math.random().toString(16).slice(2, 8)}...${Math.random().toString(16).slice(2, 6)}`,
     };
 
@@ -1137,6 +1231,7 @@ export function useHermesWebSocket(options: UseHermesWebSocketOptions = {}) {
       if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
       if (heartbeatTimerRef.current) clearInterval(heartbeatTimerRef.current);
       if (simulationTimerRef.current) clearInterval(simulationTimerRef.current);
+      if (tickTimerRef.current) clearInterval(tickTimerRef.current);
       if (socketRef.current) {
         socketRef.current.close();
         socketRef.current = null;

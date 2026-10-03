@@ -597,3 +597,5 @@ export function OrderExecutionModal({
     </div>
   );
 }
+
+export default OrderExecutionModal;
