@@ -24,21 +24,21 @@ export function LandingPage() {
     if (isConnecting) return;
     setIsConnecting(true);
     setProgress(15);
-    setStatusMessage('Establishing TLS 1.3 tunnel to Frankfurt-Cluster-09...');
+    setStatusMessage('Se stabilește tunelul securizat TLS 1.3 către Frankfurt-Cluster-09...');
 
     setTimeout(() => {
       setProgress(55);
-      setStatusMessage('Authenticating Risk Sentinel & L3 Low-Latency Router...');
+      setStatusMessage('Autentificare Risk Sentinel și ruter L3 cu latență redusă...');
     }, 600);
 
     setTimeout(() => {
       setProgress(85);
-      setStatusMessage('Synchronizing Multi-Engine State & Orderbooks...');
+      setStatusMessage('Sincronizare stare multi-motor și registre de ordine...');
     }, 1300);
 
     setTimeout(() => {
       setProgress(100);
-      setStatusMessage('Handshake verified. Access granted.');
+      setStatusMessage('Conexiune verificată cu succes. Acces autorizat.');
     }, 1800);
 
     setTimeout(() => {
@@ -66,19 +66,19 @@ export function LandingPage() {
           <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
             <Zap className="w-4 h-4" />
           </div>
-          <span className="font-mono text-xs uppercase tracking-widest text-slate-300 font-bold">
-            HERMES TRINITY // GATEWAY
+          <span className="font-mono text-xs tracking-wider text-slate-300 font-bold">
+            AM Team Gateway
           </span>
         </div>
 
         <div className="flex items-center gap-3 font-mono text-[11px] text-slate-400">
           <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Node: Frankfurt-Cluster-09
+            Nod: Frankfurt-Cluster-09
           </span>
           <span className="hidden sm:inline-flex items-center gap-1 text-slate-500">
             <Lock className="w-3 h-3 text-cyan-400" />
-            TLS 1.3 Verified
+            Verificat TLS 1.3
           </span>
         </div>
       </header>
@@ -116,39 +116,39 @@ export function LandingPage() {
 
         {/* Title & Tagline */}
         <div className="space-y-3 mb-6 max-w-2xl px-2">
-          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-[10px] sm:text-xs">
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-[10px] sm:text-xs">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>HERMES TRINITY CORE v4.8 // INSTITUTIONAL</span>
+            <span>AM Team Core v4.8 • Nivel instituțional</span>
           </div>
 
-          <h1 className="text-2xl sm:text-5xl font-black uppercase tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-            Algorithmic Trading & Multi-Engine Mesh
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+            Tranzacționare algoritmică și arhitectură multi-motor
           </h1>
 
           <p className="text-xs sm:text-base text-slate-400 font-sans leading-relaxed">
-            Autonomous multi-asset quantitative execution center. Alpha trend capture,
-            triangular arbitrage, high-frequency market making, and Sovereign Sergiu Neural Core.
+            Centru autonom de execuție cantitativă multi-activ. Captare de trend Alpha,
+            arbitraj triunghiular, market making de înaltă frecvență și nucleul neural Sergiu Sovereign.
           </p>
         </div>
 
         {/* Feature Micro-Badges */}
         <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-lg w-full mb-6 sm:mb-8 font-mono text-xs">
           <div className="p-2 sm:p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-col items-center">
-            <span className="text-slate-400 text-[9px] sm:text-[10px] uppercase">Latency</span>
-            <span className="text-cyan-400 font-bold text-xs sm:text-base mt-0.5">&lt; 14ms</span>
-            <span className="text-slate-500 text-[8px] sm:text-[9px]">L3 Frankfurt</span>
+            <span className="text-slate-400 text-[10px] sm:text-[11px]">Latență</span>
+            <span className="text-cyan-400 font-bold text-xs sm:text-base mt-0.5">&lt; 14 ms</span>
+            <span className="text-slate-500 text-[9px] sm:text-[10px]">Nod L3 Frankfurt</span>
           </div>
 
           <div className="p-2 sm:p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-col items-center">
-            <span className="text-slate-400 text-[9px] sm:text-[10px] uppercase">Units</span>
-            <span className="text-emerald-400 font-bold text-xs sm:text-base mt-0.5">5 Engines</span>
-            <span className="text-slate-500 text-[8px] sm:text-[9px]">Multi-Model</span>
+            <span className="text-slate-400 text-[10px] sm:text-[11px]">Unități</span>
+            <span className="text-emerald-400 font-bold text-xs sm:text-base mt-0.5">5 motoare</span>
+            <span className="text-slate-500 text-[9px] sm:text-[10px]">Multi-model</span>
           </div>
 
           <div className="p-2 sm:p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-col items-center">
-            <span className="text-slate-400 text-[9px] sm:text-[10px] uppercase">Sentinel</span>
-            <span className="text-indigo-400 font-bold text-xs sm:text-base mt-0.5">100% Guard</span>
-            <span className="text-slate-500 text-[8px] sm:text-[9px]">Auto Circuit</span>
+            <span className="text-slate-400 text-[10px] sm:text-[11px]">Protecție</span>
+            <span className="text-indigo-400 font-bold text-xs sm:text-base mt-0.5">100% activ</span>
+            <span className="text-slate-500 text-[9px] sm:text-[10px]">Circuit automat</span>
           </div>
         </div>
 
@@ -160,7 +160,7 @@ export function LandingPage() {
               whileTap={{ scale: 0.97 }}
               type="button"
               onClick={handleAccessTerminal}
-              className="w-full py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl bg-gradient-to-r from-cyan-500 via-emerald-400 to-cyan-500 bg-[length:200%_auto] hover:bg-right transition-all duration-500 text-slate-950 font-black font-mono tracking-wide text-xs sm:text-base uppercase shadow-xl shadow-cyan-500/25 flex items-center justify-center gap-2 sm:gap-3 border border-cyan-300/40"
+              className="w-full py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl bg-gradient-to-r from-cyan-500 via-emerald-400 to-cyan-500 bg-[length:200%_auto] hover:bg-right transition-all duration-500 text-slate-950 font-bold font-mono tracking-wide text-xs sm:text-base shadow-xl shadow-cyan-500/25 flex items-center justify-center gap-2 sm:gap-3 border border-cyan-300/40"
             >
               <span>AM Team - LIVE Dashboard</span>
               <ArrowRight className="w-4 h-4 sm:w-5 h-5 shrink-0" />
@@ -174,7 +174,7 @@ export function LandingPage() {
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-2 text-cyan-400 font-bold">
                   <Activity className="w-4 h-4 animate-spin" />
-                  AUTHENTICATING SESSION
+                  Autentificare sesiune...
                 </span>
                 <span className="text-slate-300 font-bold">{progress}%</span>
               </div>
@@ -200,12 +200,12 @@ export function LandingPage() {
       <footer className="relative z-10 max-w-7xl w-full mx-auto px-6 py-6 border-t border-slate-900 font-mono text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span>HERMES TRINITY GATEWAY • ALL CLUSTERS OPERATIONAL</span>
+          <span>AM Team Gateway • Toate nodurile sunt operaționale</span>
         </div>
         <div className="flex items-center gap-4 text-[11px]">
-          <span>AES-256 Mesh</span>
-          <span>Sergiu Murgescu Sovereign Desk</span>
-          <span>© 2026 Hermes Core</span>
+          <span>Criptare AES-256</span>
+          <span>Desk Sergiu Murgescu Sovereign</span>
+          <span>© 2026 AM Team</span>
         </div>
       </footer>
     </div>

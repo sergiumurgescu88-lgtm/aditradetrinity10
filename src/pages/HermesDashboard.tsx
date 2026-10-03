@@ -541,8 +541,13 @@ export function HermesDashboard() {
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping opacity-75" />
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400" />
             </div>
-            <div className="min-w-0 flex flex-col justify-center">
-              <div className="flex items-center gap-1.5 sm:gap-2 leading-tight">
+            <div className="relative min-w-0 flex flex-col justify-center">
+              {/* Subtle Cyan-to-Emerald Radial Glow Behind AM Team */}
+              <div
+                aria-hidden="true"
+                className="absolute -left-2 -top-1 w-32 h-8 bg-gradient-to-r from-cyan-400/25 via-emerald-400/15 to-transparent blur-md rounded-full pointer-events-none -z-10"
+              />
+              <div className="flex items-center gap-1.5 sm:gap-2 leading-tight relative">
                 <h1 className="text-lg sm:text-2xl font-black tracking-wider uppercase bg-gradient-to-r from-cyan-400 via-emerald-400 to-indigo-400 bg-clip-text text-transparent truncate drop-shadow-sm">
                   AM Team
                 </h1>
@@ -550,7 +555,7 @@ export function HermesDashboard() {
                   LIVE
                 </span>
               </div>
-              <p className="text-[10px] sm:text-xs font-mono text-slate-400 truncate mt-0.5">
+              <p className="text-[10px] sm:text-xs font-mono text-slate-400 truncate mt-0.5 relative">
                 Institutional Algorithmic Execution
               </p>
             </div>
